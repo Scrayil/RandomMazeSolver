@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.25"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "RandomMazeSolver",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ParallelRandomMazeSolver::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ParallelRandomMazeSolver-Debug-e656a7f1e1691f001706.json",
+					"name" : "ParallelRandomMazeSolver",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "SequentialRandomMazeSolver::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-SequentialRandomMazeSolver-Debug-136f2fadb0c892ec69d4.json",
+					"name" : "SequentialRandomMazeSolver",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug",
+		"source" : "/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}
