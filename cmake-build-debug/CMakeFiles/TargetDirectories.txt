@@ -1,4 +1,3 @@
-/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug/CMakeFiles/SequentialRandomMazeSolver.dir
-/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug/CMakeFiles/ParallelRandomMazeSolver.dir
+/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug/CMakeFiles/RandomMazeSolver.dir
 /home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug/CMakeFiles/edit_cache.dir
 /home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,8 @@
+{
+  "n_executions": 10,
+  "n_particles": 100,
+  "maze_size": 51,
+  "show_steps":false,
+  "save_maze": true,
+  "track_solution_path": true
+}

@@ -32,20 +32,19 @@ ENDIF()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O1")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -O1")
 ############################################################################################################################
-
-# try also to compile and execute without: -fopenmp
+# EXECUTABLES CONFIGURATION
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+set(SOURCE_FILES main.cpp sequential/sequential_version.cpp parallel/parallel_version.cpp)
+add_executable(RandomMazeSolver main.cpp sequential/sequential_version.cpp sequential/maze/maze_generation.cpp sequential/maze/maze_generation.h
+        sequential/maze/maze_solving.cpp sequential/maze/maze_solving.h parallel/parallel_version.cpp utils/utils.cpp utils/utils.h parallel/parallel_version.h sequential/sequential_version.h)
 
-set(SOURCE_FILES sequential_version.cpp parallel_version.cpp)
-
-add_executable(SequentialRandomMazeSolver sequential_version.cpp)
-add_executable(ParallelRandomMazeSolver parallel_version.cpp)
+############################################################################################################################
+# EXTERNAL LIBRARIES
+target_include_directories(RandomMazeSolver PRIVATE external/)
 
 ############################################################################################################################
 # PROFILERS
-# Append Gperftools_DIR
 set (Gperftools_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
 find_package(Gperftools REQUIRED)
-target_link_libraries(SequentialRandomMazeSolver ${GPERFTOOLS_PROFILER})
-target_link_libraries(ParallelRandomMazeSolver ${GPERFTOOLS_PROFILER})
+target_link_libraries(RandomMazeSolver ${GPERFTOOLS_PROFILER})
 ############################################################################################################################
