@@ -1,6 +1,6 @@
 {
-  "n_executions": 10,
-  "n_particles": 100,
+  "n_executions": 1,
+  "n_particles": 10000,
   "maze_size": 51,
   "show_steps":false,
   "save_maze": true,

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.25)
 project(RandomMazeSolver)
 
 set(CMAKE_CXX_STANDARD 23)
-
 ############################################################################################################################
 # SANITIZERS
 OPTION(CB_THREADSANITIZER "Enable ThreadSanitizer data race detector." ON)

@@ -35,7 +35,7 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *  @return the maze matrix of size: `size`row`size` containing a map of all the elements and paths arranged randomly.
  */
 std::vector<std::vector<MAZE_PATH>> generate_square_maze(int &size, std::mt19937 generation_rng) {
-    std::cout << "GENERATING THE MAZE.." << std::endl;
+    std::cout << "Generating the maze.." << std::endl;
 
     // Selects the exit's coordinates randomly
     std::vector<int> exit_coords = get_exit_coords(size, generation_rng);
@@ -408,8 +408,8 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *  @param maze It's the matrix representing the maze in it's current state.
  *  @param size Represents the length of each maze's side.
  */
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
-    system("clear");
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bool wait_input) {
+//    system("clear");
     for(int row = 0; row < size; row++) {
         for(int col = 0; col < size; col++) {
             MAZE_PATH curr_path = maze[row][col];
@@ -427,4 +427,11 @@ void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
         std::cout << std::endl;
     }
     std::cout << std::endl << std::endl;
+
+    // wait_input is set to false by default
+    if(wait_input) {
+        std::cout << "Press enter to continue";
+        getchar();
+        std::cout << std::endl;
+    }
 }

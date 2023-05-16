@@ -17,6 +17,6 @@ enum MAZE_PATH
 };
 
 std::vector<std::vector<MAZE_PATH>> generate_square_maze(int &size, std::mt19937 generation_rng);
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size);
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bool wait_input=false);
 
 #endif //RANDOMMAZESOLVER_MAZE_GENERATION_H

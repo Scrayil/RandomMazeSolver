@@ -24,12 +24,14 @@ void process_size(int &size, std::mt19937 &rng);
 
 
 // GLOBAL VARIABLES
-int SIDE_MAX = 701; // A value higher that this one results into a sigkill from the os on the current machine
+int SIDE_MAX = 101;
 int SIDE_MIN = 51;
 
 
 // FUNCTIONS
 int main() {
+    std::cout << "[ Random Maze Generator and Solver ]" << std::endl;
+
     // Retrieving the project's folder
     std::filesystem::path project_folder = find_project_path();
     if(project_folder.empty()) {
@@ -88,7 +90,7 @@ int main() {
         std::cout << "Maze Size: [" << size << ", " << size << "]" << std::endl;
 
         // SEQUENTIAL VERSION
-        std::cout << "\n\nSEQUENTIAL VERSION:" << std::endl;
+        std::cout << "\n\nSEQUENTIAL VERSION:\n" << std::endl;
         auto start_ts = std::chrono::high_resolution_clock::now();
         sequential_solution(size, n_particles, generation_rng, solution_rng, show_steps);
         auto end_ts = std::chrono::high_resolution_clock::now();
@@ -99,18 +101,13 @@ int main() {
         std::cout << "-----------------------------------------------------------" << std::endl;
 
         // PARALLEL VERSION
-        std::cout << "\n\nPARALLEL VERSION:" << std::endl;
+        std::cout << "\n\nPARALLEL VERSION:\n" << std::endl;
         start_ts = std::chrono::high_resolution_clock::now();
         parallel_solution(size, n_particles, generation_rng, solution_rng, show_steps);
         end_ts = std::chrono::high_resolution_clock::now();
         std::cout << std::fixed << std::setprecision(3);
         std::cout << "The execution took " << duration_cast<std::chrono::microseconds>(end_ts - start_ts).count() / 1000.f
                   << " ms" << std::endl;
-
-        // Sleeps for 3 seconds beofore continuing with the next test
-        std::cout<< "Sleeping for 7 seconds.." << std::endl;
-//        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-        std::this_thread::sleep_for(std::chrono::milliseconds(7000));
     }
 
     return 0;
