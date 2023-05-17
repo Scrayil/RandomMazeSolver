@@ -6,7 +6,6 @@
 #include <json.hpp>
 #include <random>
 #include <chrono>
-#include <thread>
 
 #include "utils/utils.h"
 #include "sequential/sequential_version.h"
@@ -94,8 +93,9 @@ int main() {
         auto start_ts = std::chrono::high_resolution_clock::now();
         sequential_solution(size, n_particles, generation_rng, solution_rng, show_steps);
         auto end_ts = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::ratio<1, 1000>> elapsed_milliseconds = end_ts-start_ts;
         std::cout << std::fixed << std::setprecision(3);
-        std::cout << "The execution took " << duration_cast<std::chrono::microseconds>(end_ts - start_ts).count() / 1000.f
+        std::cout << "The execution took " << elapsed_milliseconds.count()
         << " ms" << std::endl;
 
         std::cout << "-----------------------------------------------------------" << std::endl;
@@ -105,8 +105,9 @@ int main() {
         start_ts = std::chrono::high_resolution_clock::now();
         parallel_solution(size, n_particles, generation_rng, solution_rng, show_steps);
         end_ts = std::chrono::high_resolution_clock::now();
+        elapsed_milliseconds = end_ts-start_ts;
         std::cout << std::fixed << std::setprecision(3);
-        std::cout << "The execution took " << duration_cast<std::chrono::microseconds>(end_ts - start_ts).count() / 1000.f
+        std::cout << "The execution took " << elapsed_milliseconds.count()
                   << " ms" << std::endl;
     }
 
@@ -114,6 +115,15 @@ int main() {
 }
 
 
+/**
+ * This function is used to initialize the random-number engine.
+ *
+ * The function is used to set the specified seed value and initialize the engine.
+ * If the seed has not been specified, a new random seed is generated with "/dev/random"
+ * @param seed Allows to specify the seed to use if set.
+ * @param operation This is the string used in order to print the proper seed category on screen.
+ * @return The initialized random number engine to use for random values generation.
+ */
 std::mt19937 evaluate_seed(long seed, const std::string& operation) {
     // If the seed has not been set or is equal to -1
     // Generates a random seed with /dev/random

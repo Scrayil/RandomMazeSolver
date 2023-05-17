@@ -28,9 +28,7 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *  randomly. A specific seed can be passed to the function in order to generate a specific maze.
  *
  *  @param size Represents the length of each maze's side.
- *  @param seed Corresponds to the seed to use for the random functions. This is set to -1 by default so that
- *  the randomness is enforced by default.
- *  By setting a specific value the generation of the maze can be forced to a specific pattern.
+ *  @param seed This is the random number engine to use in order to generate random values.
  *
  *  @return the maze matrix of size: `size`row`size` containing a map of all the elements and paths arranged randomly.
  */
@@ -47,8 +45,6 @@ std::vector<std::vector<MAZE_PATH>> generate_square_maze(int &size, std::mt19937
     generate_paths(maze, size, exit_coords, generation_rng);
 
     // Displays the maze with ascii
-//    display_ascii_maze(maze, size);
-
     return maze;
 }
 
@@ -117,7 +113,6 @@ std::vector<std::vector<MAZE_PATH>> initialize_maze(int &size, std::vector<int> 
     maze[exit_coords[0]][exit_coords[1]] = MAZE_PATH::EXIT;
 
     // Shows the initial state of the maze
-//    display_ascii_maze(maze, size);
     return maze;
 }
 
@@ -250,7 +245,6 @@ void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &cu
             // Deletes the wall in between the 2 cells
             if(row_to_del > -1 && col_to_del > -1) {
                 maze[row_to_del][col_to_del] = MAZE_PATH::EMPTY;
-//                display_ascii_maze(maze, size);
             }
             else {
                 std::cout << "Unexpected error while generating the maze path." << std::endl;
@@ -408,8 +402,7 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *  @param maze It's the matrix representing the maze in it's current state.
  *  @param size Represents the length of each maze's side.
  */
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bool wait_input) {
-//    system("clear");
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
     for(int row = 0; row < size; row++) {
         for(int col = 0; col < size; col++) {
             MAZE_PATH curr_path = maze[row][col];
@@ -427,11 +420,4 @@ void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bo
         std::cout << std::endl;
     }
     std::cout << std::endl << std::endl;
-
-    // wait_input is set to false by default
-    if(wait_input) {
-        std::cout << "Press enter to continue";
-        getchar();
-        std::cout << std::endl;
-    }
 }

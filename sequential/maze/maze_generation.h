@@ -6,6 +6,10 @@
 #define RANDOMMAZESOLVER_MAZE_GENERATION_H
 
 // ENUMS AND STRUCTS
+
+/** This structure is used in order to determine the maze's inner structure and
+ * the available cells for the particles' movement.
+ */
 enum MAZE_PATH
 {
     EMPTY = 0x0,
@@ -17,6 +21,6 @@ enum MAZE_PATH
 };
 
 std::vector<std::vector<MAZE_PATH>> generate_square_maze(int &size, std::mt19937 generation_rng);
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bool wait_input=false);
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size);
 
 #endif //RANDOMMAZESOLVER_MAZE_GENERATION_H

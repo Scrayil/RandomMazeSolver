@@ -8,15 +8,17 @@
 
 
 // ENUM AND STRUCTS
+
+/// Supported movements system for particles' shifting.
 enum MOVES {
-    F = 0, // Used just for particles' initializations (freeze)
+    F = 0, // Used just for particles' initializations (frozen)
     N = 1,
     E = 2,
     S = 3,
     W = 4,
 };
 
-
+/// Supported coordinates system for particles' positioning and movements.
 struct Coordinates {
     Coordinates(int c_x, int c_y) : row(c_x), col(c_y) {}
 
@@ -25,15 +27,26 @@ struct Coordinates {
 };
 
 
+/// Struct used to represent a particle and handle it's movements inside the maze
 struct Particle {
-    // F is used just for particles' initializations (freeze)
+    // F is used just for particles' initializations (frozen)
     explicit Particle(Coordinates coords) : pos(coords), move(MOVES::F) {
         this->path.push_back(coords);
     }
 
+    /**
+     * This function is used to move the particle.
+     *
+     * It allows to update the particle's coordinates and path while it moves randomly and also when backtracking
+     * it's previous movements.
+     * Backtracking is also applied when the particle needs to follow the first particle that exited the maze.
+     * @see backtrack_exited_particle.
+     *
+     * @param new_move This represents the next particle move to implement.
+     * @param backtracking This variable indicates if the particle is going forward or backtracking the previous
+     * movements contained in the track vector.
+     */
     void update_coordinates(MOVES new_move, bool backtracking=false) {
-//        Coordinates prev_coords = this->pos;
-
         switch (new_move) {
             case MOVES::N:
                 this->pos = Coordinates(this->pos.row - 1, this->pos.col);
@@ -52,17 +65,15 @@ struct Particle {
                 exit(1);
         }
 
-        // Going back reverts the path. Case in which the new position set is the last but one in the track!
-        // This is extremely useful as it frees up memory that would be wastes as the contained coordinates are
-        // not relevant for the maze's solution
         int path_size = static_cast<int>(this->path.size());
-
         // The first position is always kept
-        // Checks the new current position against the path's last but one
-//        if(path_size > 1 && (backtracking || this->pos.row == this->path[path_size - 2].row && this->pos.col == this->path[path_size - 2].col))
+        // Case in which the particle is backtracking or the new set position is the last but one in the track!
+        // (eventual random backtrack)
+        // This is extremely useful as it frees up memory that would be wasted as some of the contained coordinates are
+        // not relevant for the maze's solution
         if((backtracking || path_size > 1 && this->pos.row == this->path[path_size - 2].row && this->pos.col == this->path[path_size - 2].col))
             this->path.pop_back();
-//        else if(!backtracking)
+        // Case in which the particle has moved onto a new cell
         else
             this->path.push_back(this->pos);
         this->move = new_move;
@@ -82,6 +93,18 @@ MOVES get_next_move_from_path(Particle &particle, Coordinates &next_coords);
 
 
 // FUNCTIONS
+
+/**
+ * Used to solve the maze, by moving all the particles randomly.
+ *
+ * After choosing a random spawn point, generates the specified amount of particles, and starts their movements logic.
+ * @see reach_exit_randomly.
+ * @param maze This is the matrix that represents the maze's structure.
+ * @param size This value represents each maze's side size.
+ * @param n_particles This allows to specify the number of particles to spawn.
+ * @param solution_rng This is the random number engine to use in order to generate random values.
+ * @param show_steps Flag used to determine if each movement step must be shown on screen.
+ */
 void solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps) {
     // Choosing a random starting position
     std::uniform_int_distribution<int> uniform_dist(size / 6, 5 * size / 6); // Guaranteed unbiased
@@ -112,6 +135,18 @@ void solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, 
     reach_exit_randomly(maze, size, initial_position, particles, solution_rng, show_steps);
 }
 
+/**
+ * This function is responsible for moving the particles inside the maze.
+ *
+ * All the particles move around randomly until one of them reaches the maze's exit.
+ * Once this happen all the remaining particles start backtracking their own steps.
+ * @param maze This is the matrix that represents the maze's structure.
+ * @param size This value represents each maze's side size.
+ * @param initial_position These are the coordinates that represents the spawn position of all the particles.
+ * @param particles This is the vector that contains all the particles.
+ * @param rng This is the random number engine to use in order to generate random values.
+ * @param show_steps Flag used to determine if each movement step must be shown on screen.
+ */
 void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps) {
     bool exit_reached = false;
     int exited_particle_index = -1;
@@ -190,6 +225,16 @@ void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, C
 }
 
 
+/**
+ * This function is used to determine the available moves for the current particle.
+ *
+ * The moves are selected based onto the state of the cells nearby in the maze.
+ * If a near cell does not contain a wall, then it represent a possible move.
+ * @param maze This is the matrix that represents the maze's structure.
+ * @param size This value represents each maze's side size.
+ * @param curr_particle This is the particle for which the moves are being evaluated.
+ * @return A vector of moves representing the next possible shifts of the current particle.
+ */
 std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Particle &curr_particle) {
     std::vector<MOVES> moves;
     moves.clear();
@@ -209,7 +254,20 @@ std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze,
     return moves;
 }
 
-
+/**
+ * This function is called once a particle has managed to exit the maze.
+ *
+ * The remaining particles backtrack their own previous steps until they end up onto the solution's path.
+ * Once they are on the right track, their path is replaced by the remaining steps followed by the exited particle and
+ * they starts to backtrack them until they exit.
+ * @param maze This is the matrix that represents the maze's structure.
+ * @param maze_copy This matrix is used only for printing purposes to not alter the maze itself.
+ * @param initial_position These are the coordinates that represents the spawn position of all the particles.
+ * @param particles This is the vector that contains all the particles.
+ * @param exited_particle_path This vector contains the steps required to reach the exit starting from the initial position.
+ * @param exited_particle_index This integer number represents the exited particle's index related to the particles' vector.
+ * @param show_steps Flag used to determine if each movement step must be shown on screen.
+ */
 void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps) {
     std::vector<bool> particles_on_track_map;
     std::vector<bool> exited_particles_map;
@@ -225,10 +283,6 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
     particles_on_track_map[exited_particle_index] = true;
     exited_particles_map[exited_particle_index] = true;
 
-//    for(int index = 0; index < particles_on_track_map.size(); index++) {
-//        std::cout << "== " << particles_on_track_map[index] << std::endl;
-//    }
-
     int n_exited_particles = 1;
     maze_copy.clear();
 
@@ -243,14 +297,11 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
             if(!exited_particles_map[particle_index]) {
                 Particle particle = particles[particle_index];
                 // If the particle wasn't on the solution path in the previous iteration checks if it is now
-//                std::cout << particle_index << "##" << particles_on_track_map[particle_index] << std::endl;
                 if(!particles_on_track_map[particle_index]) {
                     for(int path_index = 0; path_index < exited_particle_path.size(); path_index++) {
                         Coordinates coord = exited_particle_path[path_index];
-//                        std::cout << "!\"!\"!" << path_index << std::endl;
                         // The particle is now onto the right track
                         if(particle.pos.row == coord.row && particle.pos.col == coord.col) {
-//                            std::cout << particle.pos.row << "!!!!" << particle.pos.row << std::endl;
                             particles_on_track_map[particle_index] = true;
                             // Since indexes start from 0 an index of 5 means that we need to skip 6 elements, so + 1
                             // + 2 in the end as we need to skip the current position (already equal to the path index's one)
@@ -271,13 +322,10 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
                 // Following the particle's steps back
                 if(!particle.path.empty()) {
                     Coordinates next_coords = particle.path.back();
-//                    std::cout << particle.pos.row << " - " << particle.pos.col << std::endl;
-//                    std::cout << next_coords.row << " ! " << next_coords.col << std::endl;
                     if(next_coords.row == particle.pos.row && next_coords.col == particle.pos.col) {
                         particle.path.pop_back();
                         next_coords = particle.path.back();
                     }
-//                    std::cout << next_coords.row << " ! " << next_coords.col << std::endl;
                     particle.update_coordinates(get_next_move_from_path(particle, next_coords), true);
                     particles[particle_index] = particle;
 
@@ -304,6 +352,15 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
 }
 
 
+/**
+ * This function is used while backtracking in order to get the next move for the current particle while backtracking.
+ *
+ * It checks the difference between the current particle's position and it's new coordinates in order to discover
+ * it's next move.
+ * @param particle This is the particle for which the move is being evaluated.
+ * @param next_coords This are the next particle's coordinates.
+ * @return The move that the particle has to perform in order to keep backtrcking and reach the exit.
+ */
 MOVES get_next_move_from_path(Particle &particle, Coordinates &next_coords) {
     if(next_coords.row == particle.pos.row)
         // The next position is to the right
