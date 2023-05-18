@@ -5,8 +5,8 @@
 #include <iostream>
 #include <random>
 
-#include "../sequential/maze/maze_generation.h"
-#include "../sequential/maze/maze_solving.h"
+#include "../parallel/maze/maze_generation.h"
+#include "../parallel/maze/maze_solving.h"
 
 
 // FUNCTIONS
@@ -24,7 +24,7 @@
 std::vector<std::vector<MAZE_PATH>> parallel_solution(std::vector<std::vector<MAZE_PATH>> maze, int &size, int n_particles, std::mt19937 generation_rng, std::mt19937 solution_rng, bool show_steps) {
     // Generates a square maze with the specified width and height if given
     // Otherwise a random maze is generated
-    generate_square_maze(maze, size, generation_rng);
+    p_generate_square_maze(maze, size, generation_rng);
 
-    return solve(maze, size, n_particles, solution_rng, show_steps);
+    return p_solve(maze, size, n_particles, solution_rng, show_steps);
 }

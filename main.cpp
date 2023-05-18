@@ -22,7 +22,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
 
 // GLOBAL VARIABLES
 int SIDE_MAX = 101;
-int SIDE_MIN = 51;
+int SIDE_MIN = 21;
 
 
 // FUNCTIONS
@@ -213,7 +213,7 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
     std::filesystem::path maze_image_path = save_maze_image(images_path, version, maze, size);
 
     // Writing/appending to the report file
-    std::filesystem::path report_path = project_folder / "results" / "executions_report.txt";
+    std::filesystem::path report_path = project_folder / "results" / "executions_report.csv";
     std::ofstream report_file;
     if(!std::filesystem::exists(report_path)) {
         report_file.open(report_path.c_str(), std::fstream::app);
@@ -247,7 +247,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
     char buf[256] = { 0 };
     // ISO 8601 format for the timestamp
     std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
-    image_path = image_path / (version + "_" + std::string(buf) + ".txt");
+    image_path = image_path / (version + "_" + std::string(buf) + ".csv");
 
     // Generating the ascii maze image
     std::string ascii_maze = generate_ascii_maze(maze, size);

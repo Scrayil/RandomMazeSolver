@@ -3,6 +3,6 @@
   "execute_sequential": true,
   "execute_parallel": true,
   "n_particles": 10000,
-  "maze_size": 51,
+  "maze_size": 21,
   "show_steps": false
 }

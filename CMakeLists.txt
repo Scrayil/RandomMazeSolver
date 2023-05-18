@@ -34,8 +34,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -O1")
 # EXECUTABLES CONFIGURATION
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 set(SOURCE_FILES main.cpp sequential/sequential_version.cpp parallel/parallel_version.cpp)
-add_executable(RandomMazeSolver main.cpp sequential/sequential_version.cpp sequential/maze/maze_generation.cpp sequential/maze/maze_generation.h
-        sequential/maze/maze_solving.cpp sequential/maze/maze_solving.h parallel/parallel_version.cpp utils/utils.cpp utils/utils.h parallel/parallel_version.h sequential/sequential_version.h)
+add_executable(RandomMazeSolver main.cpp
+        sequential/sequential_version.cpp sequential/sequential_version.h
+        sequential/maze/maze_generation.cpp sequential/maze/maze_generation.h
+        sequential/maze/maze_solving.cpp sequential/maze/maze_solving.h
+        parallel/parallel_version.cpp  parallel/parallel_version.h
+        parallel/maze/maze_generation.cpp parallel/maze/maze_generation.h
+        parallel/maze/maze_solving.cpp parallel/maze/maze_solving.h
+        utils/utils.cpp utils/utils.h )
 ############################################################################################################################
 # EXTERNAL LIBRARIES
 target_include_directories(RandomMazeSolver PRIVATE external/)
