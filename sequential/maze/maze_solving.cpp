@@ -105,7 +105,7 @@ MOVES get_next_move_from_path(Particle &particle, Coordinates &next_coords);
  * @param n_particles This allows to specify the number of particles to spawn.
  * @param solution_rng This is the random number engine to use in order to generate random values.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
- * @return The maze's matrix with the solution path.
+ * @return the matrix that represents the maze's inner structure along with the solution path.
  */
 std::vector<std::vector<MAZE_PATH>> solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps) {
     // Choosing a random starting position
@@ -148,7 +148,7 @@ std::vector<std::vector<MAZE_PATH>> solve(std::vector<std::vector<MAZE_PATH>> ma
  * @param particles This is the vector that contains all the particles.
  * @param rng This is the random number engine to use in order to generate random values.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
- * @return The maze's matrix with the solution path.
+ * @return the matrix that represents the maze's inner structure along with the solution path.
  */
 std::vector<std::vector<MAZE_PATH>> reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps) {
     bool exit_reached = false;

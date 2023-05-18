@@ -49,9 +49,7 @@ std::filesystem::path find_project_path() {
 /**
  * Prints the maze's inner structure by using ascii characters.
  *
- * This function simply reads the content of the maze's matrix and prints to the console it's corresponding characters
- * in order to visualize it. (The display size is limited though..)
- *
+ *  Keep in mind that the display's size is limited unfortunately. Big mazes will be hardly visible.
  *  @param maze It's the matrix representing the maze in it's current state.
  *  @param size Represents the length of each maze's side.
  */
@@ -61,6 +59,15 @@ void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
 }
 
 
+/**
+ * Generates a string that represents the maze's inner structure by using ascii characters.
+ *
+ * This function simply reads the content of the maze's matrix and appends it's corresponding characters
+ * to a string in order to visualize it.
+ *
+ *  @param maze It's the matrix representing the maze in it's current state.
+ *  @param size Represents the length of each maze's side.
+ */
 std::string generate_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
     std::string ascii_maze;
     for(int row = 0; row < size; row++) {

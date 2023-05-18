@@ -22,7 +22,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
 
 // GLOBAL VARIABLES
 int SIDE_MAX = 101;
-int SIDE_MIN = 11;
+int SIDE_MIN = 51;
 
 
 // FUNCTIONS
@@ -127,6 +127,8 @@ int main() {
 
             save_results(project_folder, false, final_generation_seed, final_solution_seed, elapsed_milliseconds, maze_with_solution, size);
         }
+
+        std::cout << "###########################################################" << std::endl;
     }
 
     return 0;
@@ -183,6 +185,19 @@ void process_size(int &size, std::mt19937 &rng) {
 }
 
 
+/**
+ * Saves the juicy information related to the execution of the project.
+ *
+ * This function helps to keep track of the records and the measurements taken in order to report and confront them
+ * later on.
+ * @param project_folder This is the root path of the current project.
+ * @param is_sequential Flag used to tell if the current reported version is sequential or parallel.
+ * @param generation_seed This is the seed that has been used for the maze's generation.
+ * @param solution_seed This is the seed that has been used for the maze's solution.
+ * @param elapsed_milliseconds This is the total elapsed milliseconds required to generate and solve the maze.
+ * @param maze This is the matrix that represents the maze's inner structure along with the solution path.
+ * @param size This value represents each maze's side size.
+ */
 void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
     std::cout << "Saving the results.." << std::endl;
 
@@ -214,6 +229,18 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
     report_file.close();
 }
 
+
+/**
+ * Saves the current maze's ascii image to the disk.
+ *
+ * This function generates a file containing the maze's structure rendered with ascii character in order to
+ * be able to visualize it later with it's solution path.
+ * @param image_path This is the base location for maze's images.
+ * @param version This string is used to tell if the current maze belongs to a sequential or parallel version.
+ * @param maze This is the matrix that represents the maze's inner structure along with the solution path.
+ * @param size This value represents each maze's side size.
+ * @return `image_path`
+ */
 std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
     // Building the unique image path
     std::time_t now = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());

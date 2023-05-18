@@ -17,7 +17,7 @@
  * @param generation_rng This is the random number engine to use for the random generation values.
  * @param solution_rng This is the random number engine to use for the random solution values.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
- * @return The maze's matrix with the solution path.
+ * @return This is the matrix that represents the maze's inner structure along with the solution path.
  */
 std::vector<std::vector<MAZE_PATH>> sequential_solution(std::vector<std::vector<MAZE_PATH>> maze, int &size, int n_particles, std::mt19937 generation_rng, std::mt19937 solution_rng, bool show_steps) {
     // Generates a square maze with the specified width and height if given

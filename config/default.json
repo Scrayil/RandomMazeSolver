@@ -1,8 +1,8 @@
 {
-  "n_executions": 10,
+  "n_executions": 1,
   "execute_sequential": true,
   "execute_parallel": true,
   "n_particles": 10000,
-  "maze_size": 11,
+  "maze_size": 51,
   "show_steps": false
 }
