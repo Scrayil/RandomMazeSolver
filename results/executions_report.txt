@@ -1,2 +1,0 @@
-version,elapsed_time,generation_seed,solution_seed,maze_image_path
-sequential,662722,3691671862,3219568469,"/home/scrayil/Desktop/dev/University/projects/PPFML/RandomMazeSolver/results/mazes/sequential_23-05-18T12:09:45.txt"
