@@ -2,8 +2,10 @@
 // Created by scrayil on 08/05/23.
 //
 
-#include <json.hpp>
 #include <fstream>
+#include <iostream>
+
+#include "../utils/utils.h"
 
 // FUNCTIONS
 
@@ -41,4 +43,42 @@ std::filesystem::path find_project_path() {
             project_folder = project_folder.parent_path();
         }
     return project_folder;
+}
+
+
+/**
+ * Prints the maze's inner structure by using ascii characters.
+ *
+ * This function simply reads the content of the maze's matrix and prints to the console it's corresponding characters
+ * in order to visualize it. (The display size is limited though..)
+ *
+ *  @param maze It's the matrix representing the maze in it's current state.
+ *  @param size Represents the length of each maze's side.
+ */
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+    std::string ascii_maze = generate_ascii_maze(maze, size);
+    std::cout << ascii_maze << std::endl << std::endl;
+}
+
+
+std::string generate_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+    std::string ascii_maze;
+    for(int row = 0; row < size; row++) {
+        for(int col = 0; col < size; col++) {
+            MAZE_PATH curr_path = maze[row][col];
+            if(curr_path == MAZE_PATH::EMPTY || curr_path == MAZE_PATH::EXIT)
+                ascii_maze += "   ";
+            else if(curr_path == MAZE_PATH::WALL)
+                ascii_maze += "  □";
+            else if(curr_path == MAZE_PATH::START)
+                ascii_maze += "  ●";
+            else if(curr_path == MAZE_PATH::SOLUTION)
+                ascii_maze += "  x";
+            else if(curr_path == MAZE_PATH::PARTICLE)
+                ascii_maze += "  o";
+        }
+        ascii_maze += "\n";
+    }
+
+    return ascii_maze;
 }

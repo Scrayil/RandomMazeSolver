@@ -5,6 +5,7 @@
 #include <random>
 #include <iostream>
 #include "maze_solving.h"
+#include "../../utils/utils.h"
 
 
 // ENUM AND STRUCTS
@@ -86,7 +87,7 @@ struct Particle {
 
 
 // PROTOTYPES
-void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps);
+std::vector<std::vector<MAZE_PATH>> reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps);
 std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Particle &curr_particle);
 void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps);
 MOVES get_next_move_from_path(Particle &particle, Coordinates &next_coords);
@@ -104,8 +105,9 @@ MOVES get_next_move_from_path(Particle &particle, Coordinates &next_coords);
  * @param n_particles This allows to specify the number of particles to spawn.
  * @param solution_rng This is the random number engine to use in order to generate random values.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
+ * @return The maze's matrix with the solution path.
  */
-void solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps) {
+std::vector<std::vector<MAZE_PATH>> solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps) {
     // Choosing a random starting position
     std::uniform_int_distribution<int> uniform_dist(size / 6, 5 * size / 6); // Guaranteed unbiased
 
@@ -132,7 +134,7 @@ void solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, 
     std::cout << "Solving the maze.." << std::endl;
 
     // Starts the solving procedure
-    reach_exit_randomly(maze, size, initial_position, particles, solution_rng, show_steps);
+    return reach_exit_randomly(maze, size, initial_position, particles, solution_rng, show_steps);
 }
 
 /**
@@ -146,12 +148,12 @@ void solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, 
  * @param particles This is the vector that contains all the particles.
  * @param rng This is the random number engine to use in order to generate random values.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
+ * @return The maze's matrix with the solution path.
  */
-void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps) {
+std::vector<std::vector<MAZE_PATH>> reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps) {
     bool exit_reached = false;
     int exited_particle_index = -1;
     std::vector<std::vector<MAZE_PATH>> maze_copy;
-    maze_copy.clear();
 
     while(!exit_reached) {
         if(show_steps)
@@ -222,6 +224,8 @@ void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, C
 
 
     std::cout << "All particles have reached the exit!" << std::endl;
+
+    return maze;
 }
 
 
@@ -237,7 +241,7 @@ void reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, C
  */
 std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Particle &curr_particle) {
     std::vector<MOVES> moves;
-    moves.clear();
+    moves.reserve(4);
 
     if(-1 < curr_particle.pos.row - 1 < size && maze[curr_particle.pos.row - 1][curr_particle.pos.col] != MAZE_PATH::WALL)
         moves.push_back(MOVES::N);
@@ -269,13 +273,14 @@ std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze,
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
  */
 void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps) {
+    int n_particles = static_cast<int>(particles.size());
     std::vector<bool> particles_on_track_map;
+    particles_on_track_map.reserve(n_particles);
     std::vector<bool> exited_particles_map;
-    particles_on_track_map.clear();
-    exited_particles_map.clear();
+    exited_particles_map.reserve(n_particles);
 
     // Initializes the 2 maps elements to false
-    for(int index = 0; index < particles.size(); index++) {
+    for(int index = 0; index < n_particles; index++) {
         particles_on_track_map.push_back(false);
         exited_particles_map.push_back(false);
     }
@@ -306,10 +311,12 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
                             // Since indexes start from 0 an index of 5 means that we need to skip 6 elements, so + 1
                             // + 2 in the end as we need to skip the current position (already equal to the path index's one)
                             particle.path.clear();
+                            int remaining_path_size = static_cast<int>(exited_particle_path.size());
+                            particle.path.reserve(remaining_path_size);
 
                             // Assigns the remaining correct steps to the current particle, in reverse order (useful for
                             // using the "update_coordinates" function as it is)
-                            for(int index = static_cast<int>(exited_particle_path.size()) - 1; index > path_index; index--) {
+                            for(int index = remaining_path_size - 1; index > path_index; index--) {
                                 particle.path.push_back(exited_particle_path[index]);
                             }
 

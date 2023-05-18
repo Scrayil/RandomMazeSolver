@@ -5,6 +5,9 @@
 #ifndef RANDOMMAZESOLVER_MAZE_GENERATION_H
 #define RANDOMMAZESOLVER_MAZE_GENERATION_H
 
+#include <vector>
+#include <random>
+
 // ENUMS AND STRUCTS
 
 /** This structure is used in order to determine the maze's inner structure and
@@ -20,7 +23,6 @@ enum MAZE_PATH
     PARTICLE = 0x5,
 };
 
-std::vector<std::vector<MAZE_PATH>> generate_square_maze(int &size, std::mt19937 generation_rng);
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size);
+void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng);
 
 #endif //RANDOMMAZESOLVER_MAZE_GENERATION_H

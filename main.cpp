@@ -6,30 +6,28 @@
 #include <json.hpp>
 #include <random>
 #include <chrono>
+#include <fstream>
 
 #include "utils/utils.h"
 #include "sequential/sequential_version.h"
 #include "parallel/parallel_version.h"
-
-
-// TODO: Good seeds:
-//"generation_seed": 3199718447,
-//"solution_seed": 3896320784,
+#include "sequential/maze/maze_generation.h"
 
 
 // PROTOTYPES
-std::mt19937 evaluate_seed(long seed, const std::string& operation);
+std::mt19937 evaluate_seed(long seed, long &processed_seed, const std::string& operation);
 void process_size(int &size, std::mt19937 &rng);
-
+void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
+std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
 
 // GLOBAL VARIABLES
 int SIDE_MAX = 101;
-int SIDE_MIN = 51;
+int SIDE_MIN = 11;
 
 
 // FUNCTIONS
 int main() {
-    std::cout << "[ Random Maze Generator and Solver ]" << std::endl;
+    std::cout << std::endl << "[ Random Maze Generator and Solver ]" << std::endl << std::endl;
 
     // Retrieving the project's folder
     std::filesystem::path project_folder = find_project_path();
@@ -75,40 +73,60 @@ int main() {
         solution_seed = config["solution_seed"];
     }
 
+    // Initializing variables for timing checks
+    std::chrono::high_resolution_clock::time_point start_ts;
+    std::chrono::high_resolution_clock::time_point end_ts;
+    float elapsed_milliseconds;
+
+    // Initializes the variables that will hold the processed seeds
+    // Used to not alter the original seeds
+    long final_generation_seed;
+    long final_solution_seed;
+
     // Tests the 2 versions non-stop with the configuration seeds if given. Otherwise, a new pair of seeds is generated
     // at each iteration. But both the versions will share the seeds everytime so that the generated maze and solution
     // moves are the same.
     for(int i = 0; i < n_executions; i++) {
-        system("clear");
         // Evaluating seeds
-        std::mt19937 generation_rng = evaluate_seed(generation_seed, "generation");
-        std::mt19937 solution_rng = evaluate_seed(solution_seed, "solution");
+        std::mt19937 generation_rng = evaluate_seed(generation_seed, final_generation_seed, "generation");
+        std::mt19937 solution_rng = evaluate_seed(solution_seed, final_solution_seed, "solution");
 
         // Ensures the maze has an odd size and checks if the size is withing the allowed range
         process_size(size, generation_rng);
         std::cout << "Maze Size: [" << size << ", " << size << "]" << std::endl;
 
-        // SEQUENTIAL VERSION
-        std::cout << "\n\nSEQUENTIAL VERSION:\n" << std::endl;
-        auto start_ts = std::chrono::high_resolution_clock::now();
-        sequential_solution(size, n_particles, generation_rng, solution_rng, show_steps);
-        auto end_ts = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::ratio<1, 1000>> elapsed_milliseconds = end_ts-start_ts;
-        std::cout << std::fixed << std::setprecision(3);
-        std::cout << "The execution took " << elapsed_milliseconds.count()
-        << " ms" << std::endl;
+        // Creates the maze matrix
+        std::vector<std::vector<MAZE_PATH>> maze;
+        maze.reserve(size);
+        std::vector<std::vector<MAZE_PATH>> maze_with_solution;
 
-        std::cout << "-----------------------------------------------------------" << std::endl;
+        // SEQUENTIAL VERSION
+        if(config["execute_sequential"]) {
+            std::cout << "\n\nSEQUENTIAL VERSION:\n" << std::endl;
+            start_ts = std::chrono::high_resolution_clock::now();
+            maze_with_solution = sequential_solution(maze,size, n_particles, generation_rng, solution_rng, show_steps);
+            end_ts = std::chrono::high_resolution_clock::now();
+            elapsed_milliseconds = duration_cast<std::chrono::microseconds>(end_ts-start_ts).count() / 1000.f;
+            std::cout << std::fixed << std::setprecision(3);
+            std::cout << "The execution took " << elapsed_milliseconds << " ms" << std::endl;
+
+            save_results(project_folder, true, final_generation_seed, final_solution_seed, elapsed_milliseconds, maze_with_solution, size);
+
+            std::cout << "-----------------------------------------------------------" << std::endl;
+        }
 
         // PARALLEL VERSION
-        std::cout << "\n\nPARALLEL VERSION:\n" << std::endl;
-        start_ts = std::chrono::high_resolution_clock::now();
-        parallel_solution(size, n_particles, generation_rng, solution_rng, show_steps);
-        end_ts = std::chrono::high_resolution_clock::now();
-        elapsed_milliseconds = end_ts-start_ts;
-        std::cout << std::fixed << std::setprecision(3);
-        std::cout << "The execution took " << elapsed_milliseconds.count()
-                  << " ms" << std::endl;
+        if(config["execute_parallel"]) {
+            std::cout << "\n\nPARALLEL VERSION:\n" << std::endl;
+            start_ts = std::chrono::high_resolution_clock::now();
+            maze_with_solution = parallel_solution(maze, size, n_particles, generation_rng, solution_rng, show_steps);
+            end_ts = std::chrono::high_resolution_clock::now();
+            elapsed_milliseconds = duration_cast<std::chrono::microseconds>(end_ts-start_ts).count() / 1000.f;
+            std::cout << std::fixed << std::setprecision(3);
+            std::cout << "The execution took " << elapsed_milliseconds << " ms" << std::endl;
+
+            save_results(project_folder, false, final_generation_seed, final_solution_seed, elapsed_milliseconds, maze_with_solution, size);
+        }
     }
 
     return 0;
@@ -124,18 +142,18 @@ int main() {
  * @param operation This is the string used in order to print the proper seed category on screen.
  * @return The initialized random number engine to use for random values generation.
  */
-std::mt19937 evaluate_seed(long seed, const std::string& operation) {
+std::mt19937 evaluate_seed(long seed, long &processed_seed, const std::string& operation) {
     // If the seed has not been set or is equal to -1
     // Generates a random seed with /dev/random
     if(seed == -1) {
         std::random_device rd;
-        seed = rd();
+        processed_seed = rd();
     }
 
-    std::cout << "Current seed for " << operation << ": " << seed << std::endl;
+    std::cout << "Current seed for " << operation << ": " << processed_seed << std::endl;
 
     // Used to set a new seed everytime
-    std::mt19937 rng(seed); // Random-number engine used (Mersenne-Twister in this case)
+    std::mt19937 rng(processed_seed); // Random-number engine used (Mersenne-Twister in this case)
     return rng;
 }
 
@@ -162,4 +180,55 @@ void process_size(int &size, std::mt19937 &rng) {
         while(size % 2 == 0)
             size = uniform_dist(rng);
     }
+}
+
+
+void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+    std::cout << "Saving the results.." << std::endl;
+
+    std::string version = is_sequential ? "sequential" : "parallel";
+
+    std::filesystem::path images_path = project_folder / "results" / "mazes";
+
+    // Creating the directories if they don't exist
+    if(!std::filesystem::is_directory(images_path) || !std::filesystem::exists(images_path))
+        std::filesystem::create_directories(images_path);
+
+    // Saving the maze's image
+    std::filesystem::path maze_image_path = save_maze_image(images_path, version, maze, size);
+
+    // Writing/appending to the report file
+    std::filesystem::path report_path = project_folder / "results" / "executions_report.txt";
+    std::ofstream report_file;
+    if(!std::filesystem::exists(report_path)) {
+        report_file.open(report_path.c_str(), std::fstream::app);
+        report_file << "version,elapsed_time,generation_seed,solution_seed,maze_image_path";
+    } else {
+        report_file.open(report_path.c_str(), std::fstream::app);
+    }
+
+    // Saves the current record
+    report_file << "\n" << version << "," << elapsed_milliseconds << "," << generation_seed << "," << solution_seed << "," << maze_image_path;
+
+    // Closing the file
+    report_file.close();
+}
+
+std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+    // Building the unique image path
+    std::time_t now = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
+    char buf[256] = { 0 };
+    // ISO 8601 format for the timestamp
+    std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
+    image_path = image_path / (version + "_" + std::string(buf) + ".txt");
+
+    // Generating the ascii maze image
+    std::string ascii_maze = generate_ascii_maze(maze, size);
+
+    // Saving the image to the disk
+    std::ofstream output_image(image_path.c_str());
+    output_image << ascii_maze;
+    output_image.close();
+
+    return image_path;
 }

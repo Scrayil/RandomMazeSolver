@@ -5,6 +5,6 @@
 #ifndef RANDOMMAZESOLVER_PARALLEL_VERSION_H
 #define RANDOMMAZESOLVER_PARALLEL_VERSION_H
 
-int parallel_solution(int &size, int n_particles, std::mt19937 generation_rng, std::mt19937 solution_rng, bool show_steps);
+std::vector<std::vector<MAZE_PATH>> parallel_solution(std::vector<std::vector<MAZE_PATH>> maze, int &size, int n_particles, std::mt19937 generation_rng, std::mt19937 solution_rng, bool show_steps);
 
 #endif //RANDOMMAZESOLVER_PARALLEL_VERSION_H
