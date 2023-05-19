@@ -40,11 +40,32 @@ struct Particles {
     // F is used just for particles' initializations (frozen)
     explicit Particles(int how_many) : how_many(how_many), positions(std::vector<Coordinates>(how_many, Coordinates())), moves(std::vector<MOVES>(how_many, MOVES::F)), paths(std::vector<std::vector<Coordinates>>(how_many, std::vector<Coordinates>(0, Coordinates()))) {}
 
+    /**
+     * Allows to add new particles data to the current structure's vectors.
+     *
+     * This function updates the relative vectors' elements at the corresponding index.
+     * @param index This represents the index of the current particle values inside the vectors.
+     * @param coord
+     */
     void addParticle(int index, Coordinates coord) {
         this->positions[index] = coord;
         this->paths[index].push_back(coord);
     }
 
+
+    /**
+     * This function is used to move the particle.
+     *
+     * It allows to update the particle's coordinates and path while it moves randomly and also when backtracking
+     * it's previous movements.
+     * Backtracking is also applied when the particle needs to follow the first particle that exited the maze.
+     * @see backtrack_exited_particle.
+     *
+     * @param index This represents the index of the current particle values inside the vectors.
+     * @param new_move This represents the next particle move to implement.
+     * @param backtracking This variable indicates if the particle is going forward or backtracking the previous
+     * movements contained in the track vector.
+     */
     void update_coordinates(int index, MOVES new_move, bool backtracking=false) {
         switch (new_move) {
             case MOVES::N:
@@ -114,7 +135,6 @@ std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> 
     // SoAoS
     Particles particles(n_particles);
 
-    //  TODO: Find a way to parallelize this loop without race conditions???
     #pragma omp parallel for if(parallelize)
     for(int i = 0; i < n_particles; i++) {
         particles.addParticle(i, initial_position);
