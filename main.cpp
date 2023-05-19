@@ -253,7 +253,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
     // ISO 8601 format for the timestamp
     std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
     // Here the seed is added in order to avoid multiple images to have the same filename
-    image_path = image_path / (version + "_" + std::string(buf) + (solution_seed) + ".txt");
+    image_path = image_path / (version + "_" + std::string(buf) + std::to_string(solution_seed) + ".txt");
 
     // Generating the ascii maze image
     std::string ascii_maze = generate_ascii_maze(maze, size);
