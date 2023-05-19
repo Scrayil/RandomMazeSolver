@@ -18,7 +18,7 @@
 std::mt19937 evaluate_seed(long seed, long &processed_seed, const std::string& operation);
 void process_size(int &size, std::mt19937 &rng);
 void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, int n_particles, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
-std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
+std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size, long solution_seed);
 
 // GLOBAL VARIABLES
 int SIDE_MAX = 301;
@@ -142,6 +142,7 @@ int main() {
  * The function is used to set the specified seed value and initialize the engine.
  * If the seed has not been specified, a new random seed is generated with "/dev/random"
  * @param seed Allows to specify the seed to use if set.
+ * @param processed_seed This variable will contain the final chosen seed.
  * @param operation This is the string used in order to print the proper seed category on screen.
  * @return The initialized random number engine to use for random values generation.
  */
@@ -196,6 +197,7 @@ void process_size(int &size, std::mt19937 &rng) {
  * @param generation_seed This is the seed that has been used for the maze's generation.
  * @param solution_seed This is the seed that has been used for the maze's solution.
  * @param elapsed_milliseconds This is the total elapsed milliseconds required to generate and solve the maze.
+ * @param n_particles This is the number of spawned particles.
  * @param maze This is the matrix that represents the maze's inner structure along with the solution path.
  * @param size This value represents each maze's side size.
  */
@@ -211,7 +213,7 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
         std::filesystem::create_directories(images_path);
 
     // Saving the maze's image
-    std::filesystem::path maze_image_path = save_maze_image(images_path, version, maze, size);
+    std::filesystem::path maze_image_path = save_maze_image(images_path, version, maze, size, solution_seed);
 
     // Writing/appending to the report file
     std::filesystem::path report_path = project_folder / "results" / "executions_report.csv";
@@ -240,15 +242,18 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
  * @param version This string is used to tell if the current maze belongs to a sequential or parallel version.
  * @param maze This is the matrix that represents the maze's inner structure along with the solution path.
  * @param size This value represents each maze's side size.
+ * @param solution_seed This value represents the seed used for the maze's solution. This is used here to ensure that
+ * all mazes' images have different names as if mazes are generated and solved very fast, the timings might coincide.
  * @return `image_path`
  */
-std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size, long solution_seed) {
     // Building the unique image path
     std::time_t now = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
     char buf[256] = { 0 };
     // ISO 8601 format for the timestamp
-    std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S.%f", std::localtime(&now));
-    image_path = image_path / (version + "_" + std::string(buf) + ".txt");
+    std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
+    // Here the seed is added in order to avoid multiple images to have the same filename
+    image_path = image_path / (version + "_" + std::string(buf) + (solution_seed) + ".txt");
 
     // Generating the ascii maze image
     std::string ascii_maze = generate_ascii_maze(maze, size);
