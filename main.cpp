@@ -21,8 +21,8 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
 std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
 
 // GLOBAL VARIABLES
-int SIDE_MAX = 101;
-int SIDE_MIN = 21;
+int SIDE_MAX = 301;
+int SIDE_MIN = 51;
 
 
 // FUNCTIONS
@@ -97,6 +97,7 @@ int main() {
 
         // Creates the maze matrix
         std::vector<std::vector<MAZE_PATH>> maze;
+        maze.resize(size);
         maze.reserve(size);
         std::vector<std::vector<MAZE_PATH>> maze_with_solution;
 
@@ -217,13 +218,13 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
     std::ofstream report_file;
     if(!std::filesystem::exists(report_path)) {
         report_file.open(report_path.c_str(), std::fstream::app);
-        report_file << "version,elapsed_time,generation_seed,solution_seed,maze_image_path";
+        report_file << "version,elapsed_time,maze_size,generation_seed,solution_seed,maze_image_path";
     } else {
         report_file.open(report_path.c_str(), std::fstream::app);
     }
 
     // Saves the current record
-    report_file << "\n" << version << "," << elapsed_milliseconds << "," << generation_seed << "," << solution_seed << "," << maze_image_path;
+    report_file << "\n" << version << "," << elapsed_milliseconds << "," << size << "," << generation_seed << "," << solution_seed << "," << maze_image_path;
 
     // Closing the file
     report_file.close();
@@ -247,7 +248,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
     char buf[256] = { 0 };
     // ISO 8601 format for the timestamp
     std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
-    image_path = image_path / (version + "_" + std::string(buf) + ".csv");
+    image_path = image_path / (version + "_" + std::string(buf) + ".txt");
 
     // Generating the ascii maze image
     std::string ascii_maze = generate_ascii_maze(maze, size);

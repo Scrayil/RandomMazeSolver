@@ -4,18 +4,18 @@
 
 #include <iostream>
 #include <iterator>
+#include <omp.h>
 
 #include "maze_generation.h"
 
 
 // PROTOTYPES
 std::vector<int> p_get_exit_coords(int &size, std::mt19937 &rng);
-void p_initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords);
-void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng);
-void p_visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit);
+void p_initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, bool parallelize);
+void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng, bool parallelize);
+void p_visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit, bool parallelize);
 std::vector<std::vector<int>> p_get_unvisited_near_cells(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<int> &curr_cell, int &size, std::vector<std::vector<bool>> &visited_cells, int &n_cells, bool is_exit);
-void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng);
-
+void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng, bool parallelize);
 
 // FUNCTIONS
 
@@ -32,17 +32,17 @@ void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr
  *
  *  @return the maze matrix of size: `size`row`size` containing a map of all the elements and paths arranged randomly.
  */
-void p_generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng) {
+void p_generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng, bool parallelize) {
     std::cout << "Generating the maze.." << std::endl;
 
     // Selects the exit's coordinates randomly
     std::vector<int> exit_coords = p_get_exit_coords(size, generation_rng);
 
     // Initialize the maze to 0 places the initial walls and sets the random exit
-    p_initialize_maze(maze, size, exit_coords);
+    p_initialize_maze(maze, size, exit_coords, parallelize);
 
     // Generates the maze's paths
-    p_generate_paths(maze, size, exit_coords, generation_rng);
+    p_generate_paths(maze, size, exit_coords, generation_rng, parallelize);
 }
 
 
@@ -93,22 +93,33 @@ std::vector<int> p_get_exit_coords(int &size, std::mt19937 &rng) {
  *
  *  @return the initialized maze as a matrix where each row is a vector of type MAZE_PATH.
  */
-void p_initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords) {
-    #pragma omp parallel for shared(maze)
-    // Initializes the maze's structure.
-    for(int row = 0; row < size; row++) {
-        std::vector<MAZE_PATH> curr_col;
-        curr_col.reserve(size);
-        #pragma omp parallel for shared(curr_col)
-        for(int col = 0; col < size; col++)
-            // Place walls on even rows and columns in order to create the grid
-            if(row % 2 == 0 || col % 2 == 0)
-                curr_col.push_back(MAZE_PATH::WALL);
-            // Here the walkable path is set
-            else
-                curr_col.push_back(MAZE_PATH::EMPTY);
-        maze.push_back(curr_col);
+void p_initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, bool parallelize) {
+    // Resizes the matrix to avoid sigsev errors
+    #pragma omp parallel if(parallelize)
+    {
+        #pragma omp for
+        for (int i = 0; i < maze.size(); ++i) {
+            maze[i].resize(size);
+        }
+
+        // Initializes the matrix
+        #pragma omp for
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                // Place walls on even rows and columns to create the grid
+                if (row % 2 == 0 || col % 2 == 0) {
+                    #pragma omp critical
+                    maze[row][col] = MAZE_PATH::WALL;
+                }
+                    // Set the walkable path
+                else {
+                    #pragma omp critical
+                    maze[row][col] = MAZE_PATH::EMPTY;
+                }
+            }
+        }
     }
+
     // Placing the exit in the maze
     maze[exit_coords[0]][exit_coords[1]] = MAZE_PATH::EXIT;
 }
@@ -125,24 +136,42 @@ void p_initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std
  *  @param exit_coords This is the random number engine to use in order to generate random values.
  *  @param rng This is the random number engine to use in order to generate random values.
  */
-void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng) {
+void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng, bool parallelize) {
     std::vector<std::vector<bool>> visited_cells;
-    visited_cells.reserve(size*size);
+    visited_cells.resize(size);
     std::vector<std::vector<int>> curr_track;
 
     // Initializes the current path tracking and sets the relative index to 0
     int curr_index = 0;
     curr_track.push_back(exit_coords);
 
+//    // Initializes the visited_cells array to false as no cell has been visited yet
+//    for(int row = 0; row < size; row++) {
+//        std::vector<bool> curr_col;
+//        curr_col.resize(size);
+//        curr_col.reserve(size);
+//        for(int col = 0; col < size; col++)
+//        {
+//            curr_col[col] = false;
+//        }
+//        visited_cells[row] = curr_col;
+//    }
+
     // Initializes the visited_cells array to false as no cell has been visited yet
-    for(int row = 0; row < size; row++) {
-        std::vector<bool> curr_col;
-        curr_col.reserve(size);
-        for(int col = 0; col < size; col++)
-        {
-            curr_col.push_back(false);
+    #pragma omp parallel if(parallelize)
+    {
+        #pragma omp for
+        for (int i = 0; i < size; ++i) {
+            visited_cells[i].resize(size);
         }
-        visited_cells.push_back(curr_col);
+
+        #pragma omp for
+        for(int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                #pragma omp critical
+                visited_cells[i][j] = false;
+            }
+        }
     }
 
     // Sets the exit cell as first visited cell
@@ -155,7 +184,7 @@ void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std:
     // Then randomly select one of them and proceeds visiting it
     // If a dead end is found, it backtracks all steps until it finds a new unvisited cell
     // If by backtracking all cells have been visited, the maze has been completely generated
-    p_visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, true);
+    p_visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, true, parallelize);
 }
 
 
@@ -182,13 +211,16 @@ void p_generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std:
  *  @param is_exit This flag is used to determine if the current cell corresponds to the exit. If so there is surely only
  *  one nearby unvisited cell, but no wall in between. So the wall removal is unneeded.
  */
-void p_visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit) {
+void p_visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit, bool parallelize) {
     // Retrieves the nearest cells if there is any
     // Then randomly select one of them and proceeds visiting it
     // If a dead end is found, it backtracks all steps until it finds a new unvisited cell
     // If by backtracking all cells have been visited, the maze has been completely generated
     int n_cells = 0;
     std::vector<std::vector<int>> near_cells = p_get_unvisited_near_cells(maze, curr_cell, size, visited_cells, n_cells, is_exit);
+
+    // IMPORTANT:
+    // The following loop can't be parallelized as the algorithm to generate the path follows a sequential movement logic
     // n_cells is updated by the function call above
     while(n_cells > 0) {
         curr_index += 1;
@@ -266,7 +298,7 @@ void p_visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &
     }
     // Follows the path's steps back until a new unvisited cell is found, and then it resumes the path generation
     // process from there
-    p_backtrack(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng);
+    p_backtrack(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, parallelize);
 }
 
 
@@ -371,7 +403,7 @@ std::vector<std::vector<int>> p_get_unvisited_near_cells(std::vector<std::vector
  *  @param is_exit This flag is used to determine if the current cell corresponds to the exit. If so there is surely only
  *  one nearby unvisited cell, but no wall in between. So the wall removal is unneeded.
  */
-void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng) {
+void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng, bool parallelize) {
     // Follows the steps back until a new unvisited cell is found or
     // the maze has been completely visited
     // Starts from -2 since the latest element in the track corresponds to the latest visited cell (no near unvisited ones)
@@ -386,7 +418,7 @@ void p_backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr
         // n_cells is updated by the function call below
         p_get_unvisited_near_cells(maze, curr_cell, size, visited_cells, n_cells, false);
         if(n_cells > 0) {
-            p_visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, false);
+            p_visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, false, parallelize);
             break;
         }
     }

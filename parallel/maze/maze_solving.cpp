@@ -4,6 +4,7 @@
 
 #include <random>
 #include <iostream>
+#include <omp.h>
 #include "maze_solving.h"
 #include "../../utils/utils.h"
 
@@ -87,9 +88,9 @@ struct Particle {
 
 
 // PROTOTYPES
-std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps);
+std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps, bool parallelize);
 std::vector<MOVES> p_get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Particle &curr_particle);
-void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps);
+void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps, bool parallelize);
 MOVES p_get_next_move_from_path(Particle &particle, Coordinates &next_coords);
 
 
@@ -107,7 +108,7 @@ MOVES p_get_next_move_from_path(Particle &particle, Coordinates &next_coords);
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
  * @return the matrix that represents the maze's inner structure along with the solution path.
  */
-std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps) {
+std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> maze, int size, int n_particles, std::mt19937 solution_rng, bool show_steps, bool parallelize) {
     // Choosing a random starting position
     std::uniform_int_distribution<int> uniform_dist(size / 6, 5 * size / 6); // Guaranteed unbiased
 
@@ -118,8 +119,8 @@ std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> 
 
     // AoS
     std::vector<Particle> particles;
-    particles.reserve(n_particles);
 
+//    #pragma omp parallel for if(parallelize)
     for(int i = 0; i < n_particles; i++) {
         Particle particle = Particle(initial_position);
         particles.push_back(particle);
@@ -134,7 +135,7 @@ std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> 
     std::cout << "Solving the maze.." << std::endl;
 
     // Starts the solving procedure
-    return p_reach_exit_randomly(maze, size, initial_position, particles, solution_rng, show_steps);
+    return p_reach_exit_randomly(maze, size, initial_position, particles, solution_rng, show_steps, parallelize);
 }
 
 /**
@@ -150,7 +151,7 @@ std::vector<std::vector<MAZE_PATH>> p_solve(std::vector<std::vector<MAZE_PATH>> 
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
  * @return the matrix that represents the maze's inner structure along with the solution path.
  */
-std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps) {
+std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vector<MAZE_PATH>> &maze, int &size, Coordinates &initial_position, std::vector<Particle> &particles, std::mt19937 &rng, bool show_steps, bool parallelize) {
     bool exit_reached = false;
     int exited_particle_index = -1;
     std::vector<std::vector<MAZE_PATH>> maze_copy;
@@ -160,42 +161,48 @@ std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vecto
             // Copies the maze to show the particles positions
             maze_copy = maze;
 
+        #pragma omp parallel for if(parallelize)
         for(int index = 0; index < particles.size(); index++) {
-            Particle curr_particle = particles[index];
+            if(!exit_reached) {
+                Particle curr_particle = particles[index];
 
-            std::vector<MOVES> moves = p_get_possible_moves(maze, size, curr_particle);
-            bool same_move_allowed = false;
-            for(MOVES move : moves) {
-                // Keeps going on if it can go only on opposite directions
-                if(moves.size() == 2 && curr_particle.move == move) {
-                    same_move_allowed = true;
-                    curr_particle.update_coordinates(move);
-                    break;
+                std::vector<MOVES> moves = p_get_possible_moves(maze, size, curr_particle);
+                bool same_move_allowed = false;
+                for(MOVES move : moves) {
+                    // Keeps going on if it can go only on opposite directions
+                    if(moves.size() == 2 && curr_particle.move == move) {
+                        same_move_allowed = true;
+                        curr_particle.update_coordinates(move);
+                        break;
+                    }
                 }
-            }
-            // The same move wasn't available because of the walls nearby
-            if(!same_move_allowed) {
-                // Choosing a random move
-                std::uniform_int_distribution<int> uniform_dist(0, static_cast<int>(moves.size()) - 1); // Guaranteed unbiased
-                MOVES new_move = moves[uniform_dist(rng)];
-                curr_particle.update_coordinates(new_move);
-            }
+                // The same move wasn't available because of the walls nearby
+                if(!same_move_allowed) {
+                    // Choosing a random move
+                    std::uniform_int_distribution<int> uniform_dist(0, static_cast<int>(moves.size()) - 1); // Guaranteed unbiased
+                    MOVES new_move = moves[uniform_dist(rng)];
+                    curr_particle.update_coordinates(new_move);
+                }
 
-            // Updates the particle in the vector
-            particles[index] = curr_particle;
+                // Updates the particle in the vector
+                particles[index] = curr_particle;
 
-            if(show_steps) {
-                // Add the particles to the maze_copy
-                maze_copy[curr_particle.pos.row][curr_particle.pos.col] = MAZE_PATH::PARTICLE;
-                // Shows the start everytime
-                maze_copy[initial_position.row][initial_position.col] = MAZE_PATH::START;
-            }
+                if(show_steps) {
+                    // Add the particles to the maze_copy
+                    maze_copy[curr_particle.pos.row][curr_particle.pos.col] = MAZE_PATH::PARTICLE;
+                    #pragma omp critical
+                    // Shows the start everytime
+                    maze_copy[initial_position.row][initial_position.col] = MAZE_PATH::START;
+                }
 
-            // The particle has reached the exit
-            if(maze[curr_particle.pos.row][curr_particle.pos.col] == MAZE_PATH::EXIT) {
-                exited_particle_index = index;
-                exit_reached = true;
-                break;
+                // The particle has reached the exit
+                if(maze[curr_particle.pos.row][curr_particle.pos.col] == MAZE_PATH::EXIT) {
+                    #pragma omp critical
+                    {
+                        exited_particle_index = index;
+                        exit_reached = true;
+                    };
+                }
             }
         }
 
@@ -207,6 +214,7 @@ std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vecto
 
     std::vector<Coordinates> exited_particle_path = particles[exited_particle_index].path;
 
+    #pragma omp parallel for if(exited_particle_path.size() / omp_get_max_threads() > 100)
     // Shows the maze's path that lead to the solution
     for(Coordinates coord : exited_particle_path) {
         maze[coord.row][coord.col] = MAZE_PATH::SOLUTION;
@@ -220,7 +228,7 @@ std::vector<std::vector<MAZE_PATH>> p_reach_exit_randomly(std::vector<std::vecto
     std::cout << "Backtracking the exited particle.." << std::endl;
 
     // Backtracking the first particle that went out
-    p_backtrack_exited_particle(maze, maze_copy, initial_position, size, particles, exited_particle_path, exited_particle_index, show_steps);
+    p_backtrack_exited_particle(maze, maze_copy, initial_position, size, particles, exited_particle_path, exited_particle_index, show_steps, parallelize);
 
 
     std::cout << "All particles have reached the exit!" << std::endl;
@@ -272,17 +280,18 @@ std::vector<MOVES> p_get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maz
  * @param exited_particle_index This integer number represents the exited particle's index related to the particles' vector.
  * @param show_steps Flag used to determine if each movement step must be shown on screen.
  */
-void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps) {
+void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<std::vector<MAZE_PATH>> &maze_copy, Coordinates &initial_position, int &size, std::vector<Particle> &particles, const std::vector<Coordinates>& exited_particle_path, int exited_particle_index, bool show_steps, bool parallelize) {
     int n_particles = static_cast<int>(particles.size());
     std::vector<bool> particles_on_track_map;
     particles_on_track_map.reserve(n_particles);
     std::vector<bool> exited_particles_map;
     exited_particles_map.reserve(n_particles);
 
+    #pragma omp parallel for if(parallelize)
     // Initializes the 2 maps elements to false
     for(int index = 0; index < n_particles; index++) {
-        particles_on_track_map.push_back(false);
-        exited_particles_map.push_back(false);
+        particles_on_track_map[index]= false;
+        exited_particles_map[index] = false;
     }
 
     particles_on_track_map[exited_particle_index] = true;
@@ -296,9 +305,10 @@ void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std:
             // Resets the maze to show the steps
             maze_copy = maze;
 
+        #pragma omp parallel for if(parallelize)
         // Backtracking the particles movements until they are on the solution path
         // After that they follow the first exited particle's movements
-        for(int particle_index = 0; particle_index < particles.size(); particle_index++) {
+        for(int particle_index = 0; particle_index < n_particles; particle_index++) {
             if(!exited_particles_map[particle_index]) {
                 Particle particle = particles[particle_index];
                 // If the particle wasn't on the solution path in the previous iteration checks if it is now
@@ -343,6 +353,7 @@ void p_backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std:
                         display_ascii_maze(maze_copy, size);
                     }
                 } else if (!exited_particles_map[particle_index]){
+                    #pragma omp critical
                     n_exited_particles += 1;
                     exited_particles_map[particle_index] = true;
                 }

@@ -97,15 +97,16 @@ void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::
     // Initializes the maze's structure.
     for(int row = 0; row < size; row++) {
         std::vector<MAZE_PATH> curr_col;
+        curr_col.resize(size);
         curr_col.reserve(size);
         for(int col = 0; col < size; col++)
             // Place walls on even rows and columns in order to create the grid
             if(row % 2 == 0 || col % 2 == 0)
-                curr_col.push_back(MAZE_PATH::WALL);
+                curr_col[col] = MAZE_PATH::WALL;
             // Here the walkable path is set
             else
-                curr_col.push_back(MAZE_PATH::EMPTY);
-        maze.push_back(curr_col);
+                curr_col[col] = MAZE_PATH::EMPTY;
+        maze[row] = curr_col;
     }
     // Placing the exit in the maze
     maze[exit_coords[0]][exit_coords[1]] = MAZE_PATH::EXIT;
@@ -125,7 +126,7 @@ void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::
  */
 void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng) {
     std::vector<std::vector<bool>> visited_cells;
-    visited_cells.reserve(size*size);
+    visited_cells.reserve(size); // Todo: check because it was: size*size????
     std::vector<std::vector<int>> curr_track;
 
     // Initializes the current path tracking and sets the relative index to 0
