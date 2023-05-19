@@ -267,6 +267,7 @@ std::vector<MOVES> get_possible_moves(std::vector<std::vector<MAZE_PATH>> &maze,
  * @param maze This is the matrix that represents the maze's structure.
  * @param maze_copy This matrix is used only for printing purposes to not alter the maze itself.
  * @param initial_position These are the coordinates that represents the spawn position of all the particles.
+ * @param size This value represents each maze's side size.
  * @param particles This is the vector that contains all the particles.
  * @param exited_particle_path This vector contains the steps required to reach the exit starting from the initial position.
  * @param exited_particle_index This integer number represents the exited particle's index related to the particles' vector.

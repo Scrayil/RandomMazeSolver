@@ -28,9 +28,7 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *
  *  @param maze It's the matrix representing the maze that is being generated.
  *  @param size Represents the length of each maze's side.
- *  @param seed This is the random number engine to use in order to generate random values.
- *
- *  @return the maze matrix of size: `size`row`size` containing a map of all the elements and paths arranged randomly.
+ *  @param generation_rng This is the random number engine to use in order to generate random values.
  */
 void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng) {
     std::cout << "Generating the maze.." << std::endl;
@@ -90,8 +88,6 @@ std::vector<int> get_exit_coords(int &size, std::mt19937 &rng) {
  *  @param maze It's the matrix representing the maze that is being generated.
  *  @param size Represents the length of each maze's side.
  *  @param exit_coords This is the random number engine to use in order to generate random values.
- *
- *  @return the initialized maze as a matrix where each row is a vector of type MAZE_PATH.
  */
 void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords) {
     // Initializes the maze's structure.
@@ -171,7 +167,6 @@ void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::v
  *  @param size Represents the length of each maze's side.
  *  @param curr_index Represents the current index related to the visited cells tracking in the actual path. This will
  *  be used later in order to follow the steps back and find new unvisited cells (backtracking).
- *  @param exit_coords This is the random number engine to use in order to generate random values.
  *  @param curr_cell This is the current cell for which the near unvisited cells are being checked. If there is any,
  *  a connection between the 2 is performed by removing the wall in between.
  *  @param curr_track Contains all the coordinates of the visited cells in the current path, and keeps track
@@ -362,13 +357,10 @@ std::vector<std::vector<int>> get_unvisited_near_cells(std::vector<std::vector<M
  *  be used later in order to follow the steps back and find new unvisited cells (backtracking).
  *  @param curr_cell This is the current cell for which the near unvisited cells are being checked. If there is any,
  *  a connection between the 2 is performed by removing the wall in between.
- *  @param exit_coords This is the random number engine to use in order to generate random values.
  *  @param curr_track Contains all the coordinates of the visited cells in the current path, and keeps track
  *  of their traversal order.
  *  @param visited_cells This is the matrix used to keep track of all the cells that have been visited.
  *  @param rng This is the random number engine to use in order to generate random values.
- *  @param is_exit This flag is used to determine if the current cell corresponds to the exit. If so there is surely only
- *  one nearby unvisited cell, but no wall in between. So the wall removal is unneeded.
  */
 void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng) {
     // Follows the steps back until a new unvisited cell is found or
