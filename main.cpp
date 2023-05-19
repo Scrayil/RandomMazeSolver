@@ -17,7 +17,7 @@
 // PROTOTYPES
 std::mt19937 evaluate_seed(long seed, long &processed_seed, const std::string& operation);
 void process_size(int &size, std::mt19937 &rng);
-void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
+void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, int n_particles, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
 std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::string &version, std::vector<std::vector<MAZE_PATH>> &maze, int &size);
 
 // GLOBAL VARIABLES
@@ -111,7 +111,7 @@ int main() {
             std::cout << std::fixed << std::setprecision(3);
             std::cout << "The execution took " << elapsed_milliseconds << " ms" << std::endl;
 
-            save_results(project_folder, true, final_generation_seed, final_solution_seed, elapsed_milliseconds, maze_with_solution, size);
+            save_results(project_folder, true, final_generation_seed, final_solution_seed, elapsed_milliseconds, n_particles, maze_with_solution, size);
 
             std::cout << "-----------------------------------------------------------" << std::endl;
         }
@@ -126,7 +126,7 @@ int main() {
             std::cout << std::fixed << std::setprecision(3);
             std::cout << "The execution took " << elapsed_milliseconds << " ms" << std::endl;
 
-            save_results(project_folder, false, final_generation_seed, final_solution_seed, elapsed_milliseconds, maze_with_solution, size);
+            save_results(project_folder, false, final_generation_seed, final_solution_seed, elapsed_milliseconds, n_particles, maze_with_solution, size);
         }
 
         std::cout << "###########################################################" << std::endl;
@@ -199,7 +199,7 @@ void process_size(int &size, std::mt19937 &rng) {
  * @param maze This is the matrix that represents the maze's inner structure along with the solution path.
  * @param size This value represents each maze's side size.
  */
-void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+void save_results(std::filesystem::path &project_folder, bool is_sequential, long &generation_seed, long &solution_seed, float &elapsed_milliseconds, int n_particles, std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
     std::cout << "Saving the results.." << std::endl;
 
     std::string version = is_sequential ? "sequential" : "parallel";
@@ -218,13 +218,13 @@ void save_results(std::filesystem::path &project_folder, bool is_sequential, lon
     std::ofstream report_file;
     if(!std::filesystem::exists(report_path)) {
         report_file.open(report_path.c_str(), std::fstream::app);
-        report_file << "version,elapsed_time,maze_size,generation_seed,solution_seed,maze_image_path";
+        report_file << "version,elapsed_time,maze_size,n_particles,generation_seed,solution_seed,maze_image_path";
     } else {
         report_file.open(report_path.c_str(), std::fstream::app);
     }
 
     // Saves the current record
-    report_file << "\n" << version << "," << elapsed_milliseconds << "," << size << "," << generation_seed << "," << solution_seed << "," << maze_image_path;
+    report_file << "\n" << version << "," << elapsed_milliseconds << "," << size << "," << n_particles << "," << generation_seed << "," << solution_seed << "," << maze_image_path;
 
     // Closing the file
     report_file.close();
@@ -247,7 +247,7 @@ std::filesystem::path save_maze_image(std::filesystem::path &image_path, std::st
     std::time_t now = std::chrono::high_resolution_clock::to_time_t(std::chrono::high_resolution_clock::now());
     char buf[256] = { 0 };
     // ISO 8601 format for the timestamp
-    std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S", std::localtime(&now));
+    std::strftime(buf, sizeof(buf), "%y-%m-%dT%H:%M:%S.%f", std::localtime(&now));
     image_path = image_path / (version + "_" + std::string(buf) + ".txt");
 
     // Generating the ascii maze image

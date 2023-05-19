@@ -33,7 +33,6 @@ nlohmann::json parse_configuration(const std::filesystem::path& project_folder) 
  * @return A path object representing the projects location.
  */
 std::filesystem::path find_project_path() {
-    // Todo: Add subfolders check??
     std::filesystem::path project_folder = std::filesystem::current_path();
     while(!project_folder.string().ends_with("RandomMazeSolver"))
         if(project_folder.string() == "/") {

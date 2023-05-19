@@ -126,7 +126,7 @@ void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::
  */
 void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng) {
     std::vector<std::vector<bool>> visited_cells;
-    visited_cells.reserve(size); // Todo: check because it was: size*size????
+    visited_cells.reserve(size);
     std::vector<std::vector<int>> curr_track;
 
     // Initializes the current path tracking and sets the relative index to 0
