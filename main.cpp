@@ -1,6 +1,4 @@
-//
-// Created by scrayil on 13/05/23.
-//
+// Copyright (c) 2023. Created by Mattia Bennati, a.k.a Scrayil. All rights reserved.
 
 #include <iostream>
 #include <json.hpp>

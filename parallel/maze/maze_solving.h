@@ -1,6 +1,4 @@
-//
-// Created by scrayil on 12/05/23.
-//
+// Copyright (c) 2023. Created by Mattia Bennati, a.k.a Scrayil. All rights reserved.
 
 #ifndef RANDOMMAZESOLVER_MAZE_SOLVING_H
 #define RANDOMMAZESOLVER_MAZE_SOLVING_H
