@@ -25,6 +25,6 @@ Here there is a sample report that shows the record related to the above maze's 
 https://github.com/Scrayil/RandomMazeSolver/blob/8bbf23ec1519d0bb2e218949529b7e31b2ea73d0/results/executions_report.csv?plain=1#L1-L3  
 
 ## Notes
-Showing intermediate steps while generating and solving big mazes by using a big amount of particles results into slow console updates, flickering and an harsh visual experience.  
-At the moment the mazes' images filenames generation does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
+**Showing intermediate steps** while generating and solving big mazes by using a big amount of particles results into slow console updates, flickering and an harsh visual experience.  
+At the moment the **mazes' images filenames generation** does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
 If 2 small mazes are solved consecutively in the same second (timestamp), the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
