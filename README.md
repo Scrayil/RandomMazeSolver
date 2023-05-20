@@ -27,4 +27,4 @@ https://github.com/Scrayil/RandomMazeSolver/blob/8bbf23ec1519d0bb2e218949529b7e3
 ## Notes
 Showing intermediate steps while generating and solving big mazes by using a big amount of particles results into slow console updates, flickering and an harsh visual experience.  
 At the moment the mazes' images filenames generation does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
-If 2 small mazes are solved consecutively and the difference is milliseconds, the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
+If 2 small mazes are solved consecutively and the difference is in milliseconds, the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
