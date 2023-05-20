@@ -5,14 +5,14 @@ It consists of two different versions:
 - the sequential one in which all the instructions are executed serially
 - the parallel one that is realized by using parallelization paradigms based onto the OpenMP library
 
-The execution is based onto a configuration file in which some parameters can be specified.
+The execution is based onto a configuration file in which some parameters can be specified.  
 The parameters include things like the number of executions to perform, the versions of the program to execute,
-the size of the maze, the number of particles to generate and so on.
-Specific seeds can eventually be set in order to generate predictable mazes and their relative solutions.
+the size of the maze, the number of particles to generate and so on.  
+Specific seeds can eventually be set in order to generate predictable mazes and their relative solutions.  
 **Note:** If not specified, at each execution seeds are randomly generated but both versions in the same execution
 will share the same values for consistency.
 
-The project is used to show and evaluate the benefits of parallelization over the sequential execution of the code.
+The project is used to show and evaluate the benefits of parallelization over the sequential execution of the code.  
 Results and reports have been included into this repository.
 
 ## Reporting
