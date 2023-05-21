@@ -1,5 +1,5 @@
 {
-  "n_executions": 50,
+  "n_executions": 1,
   "execute_sequential": true,
   "execute_parallel": true,
   "n_particles": 10000,
