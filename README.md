@@ -29,3 +29,7 @@ https://github.com/Scrayil/RandomMazeSolver/blob/8bbf23ec1519d0bb2e218949529b7e3
 
 At the moment the **mazes' images filenames generation** does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
 If 2 small mazes are solved consecutively in the same second (timestamp), the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
+
+## License
+Copyright 2023 Mattia Bennati
+Licensed under the GNU GPL V2: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
