@@ -20,7 +20,7 @@
 std::vector<std::vector<MAZE_PATH>> sequential_solution(std::vector<std::vector<MAZE_PATH>> maze, int &size, int n_particles, std::mt19937 generation_rng, std::mt19937 solution_rng, bool show_steps) {
     // Generates a square maze with the specified width and height if given
     // Otherwise a random maze is generated
-    generate_square_maze(maze, size, generation_rng);
+    generate_square_maze(maze, size, generation_rng, show_steps);
 
     return solve(maze, size, n_particles, solution_rng, show_steps);
 }

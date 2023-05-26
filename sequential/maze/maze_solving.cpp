@@ -127,7 +127,7 @@ std::vector<std::vector<MAZE_PATH>> solve(std::vector<std::vector<MAZE_PATH>> ma
     // Adds the particles to the maze copy in order to show them
     std::vector<std::vector<MAZE_PATH>> maze_copy = maze;
     maze_copy[initial_position.row][initial_position.col] = MAZE_PATH::START;
-    display_ascii_maze(maze_copy, size);
+    display_ascii_maze(maze_copy, size, show_steps);
 
     std::cout << "Solving the maze.." << std::endl;
 
@@ -199,7 +199,7 @@ std::vector<std::vector<MAZE_PATH>> reach_exit_randomly(std::vector<std::vector<
 
         if(show_steps && !maze_copy.empty())
             // Displays the particles in the maze
-            display_ascii_maze(maze_copy, size);
+            display_ascii_maze(maze_copy, size, show_steps);
 
     }
 
@@ -212,7 +212,7 @@ std::vector<std::vector<MAZE_PATH>> reach_exit_randomly(std::vector<std::vector<
     maze[initial_position.row][initial_position.col] = MAZE_PATH::START;
 
     // Shows the maze with the solution path
-    display_ascii_maze(maze, size);
+    display_ascii_maze(maze, size, show_steps);
 
     std::cout << "Exit reached!" << std::endl;
     std::cout << "Backtracking the exited particle.." << std::endl;
@@ -338,7 +338,7 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
                     particles[particle_index] = particle;
 
                     // Displays the particle's position
-                    if(show_steps && !maze_copy.empty()) {
+                    if(show_steps) {
                         maze_copy[particle.pos.row][particle.pos.col] = MAZE_PATH::PARTICLE;
                     }
                 } else if (!exited_particles_map[particle_index]){
@@ -347,14 +347,14 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
                 }
             } else {
                 // Displays the particle's position
-                if(show_steps && !maze_copy.empty()) {
+                if(show_steps) {
                     maze_copy[particles[particle_index].pos.row][particles[particle_index].pos.col] = MAZE_PATH::PARTICLE;
                 }
             }
         }
 
         if(show_steps)
-            display_ascii_maze(maze_copy, size);
+            display_ascii_maze(maze_copy, size, show_steps);
     }
 //    for(Particle particle : particles) {
 //        std::cout << particle.pos.row << " nn " << particle.pos.col << std::endl;

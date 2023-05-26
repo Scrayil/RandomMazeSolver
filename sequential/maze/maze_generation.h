@@ -21,6 +21,6 @@ enum MAZE_PATH
     PARTICLE = 0x5,
 };
 
-void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng);
+void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng, bool show_steps);
 
 #endif //RANDOMMAZESOLVER_MAZE_GENERATION_H

@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 #include "../utils/utils.h"
 
@@ -49,8 +50,13 @@ std::filesystem::path find_project_path() {
  *  Keep in mind that the display's size is limited unfortunately. Big mazes will be hardly visible.
  *  @param maze It's the matrix representing the maze in it's current state.
  *  @param size Represents the length of each maze's side.
+ *  @param show_steps Flag used to determine if each change step is being shown on screen.
  */
-void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size) {
+void display_ascii_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, bool show_steps) {
+    if(show_steps) {
+        std::cout << "\x1B[2J\x1B[H";
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     std::string ascii_maze = generate_ascii_maze(maze, size);
     std::cout << ascii_maze << std::endl << std::endl;
 }

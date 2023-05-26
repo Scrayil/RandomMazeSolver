@@ -4,15 +4,16 @@
 #include <iterator>
 
 #include "maze_generation.h"
+#include "../../utils/utils.h"
 
 
 // PROTOTYPES
 std::vector<int> get_exit_coords(int &size, std::mt19937 &rng);
 void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords);
-void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng);
-void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit);
+void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng, bool show_steps);
+void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit, bool show_steps);
 std::vector<std::vector<int>> get_unvisited_near_cells(std::vector<std::vector<MAZE_PATH>> &maze, std::vector<int> &curr_cell, int &size, std::vector<std::vector<bool>> &visited_cells, int &n_cells, bool is_exit);
-void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng);
+void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool show_steps);
 
 
 // FUNCTIONS
@@ -27,8 +28,9 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
  *  @param maze It's the matrix representing the maze that is being generated.
  *  @param size Represents the length of each maze's side.
  *  @param generation_rng This is the random number engine to use in order to generate random values.
+ *  @param show_steps Flag used to determine if each change step must be shown on screen.
  */
-void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng) {
+void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::mt19937 generation_rng, bool show_steps) {
     std::cout << "Generating the maze.." << std::endl;
 
     // Selects the exit's coordinates randomly
@@ -38,7 +40,7 @@ void generate_square_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, 
     initialize_maze(maze, size, exit_coords);
 
     // Generates the maze's paths
-    generate_paths(maze, size, exit_coords, generation_rng);
+    generate_paths(maze, size, exit_coords, generation_rng, show_steps);
 }
 
 
@@ -117,8 +119,9 @@ void initialize_maze(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::
  *  @param size Represents the length of each maze's side.
  *  @param exit_coords This is the random number engine to use in order to generate random values.
  *  @param rng This is the random number engine to use in order to generate random values.
+ *  @param show_steps Flag used to determine if each change step must be shown on screen.
  */
-void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng) {
+void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::vector<int> exit_coords, std::mt19937 &rng, bool show_steps) {
     std::vector<std::vector<bool>> visited_cells;
     visited_cells.reserve(size);
     std::vector<std::vector<int>> curr_track;
@@ -148,7 +151,7 @@ void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::v
     // Then randomly select one of them and proceeds visiting it
     // If a dead end is found, it backtracks all steps until it finds a new unvisited cell
     // If by backtracking all cells have been visited, the maze has been completely generated
-    visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, true);
+    visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, true, show_steps);
 }
 
 
@@ -172,9 +175,10 @@ void generate_paths(std::vector<std::vector<MAZE_PATH>> &maze, int &size, std::v
  *  @param visited_cells This is the matrix used to keep track of all the cells that have been visited.
  *  @param rng This is the random number engine to use in order to generate random values.
  *  @param is_exit This flag is used to determine if the current cell corresponds to the exit. If so there is surely only
+ *  @param show_steps Flag used to determine if each change step must be shown on screen.
  *  one nearby unvisited cell, but no wall in between. So the wall removal is unneeded.
  */
-void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit) {
+void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells, std::mt19937 &rng, bool is_exit, bool show_steps) {
     // Retrieves the nearest cells if there is any
     // Then randomly select one of them and proceeds visiting it
     // If a dead end is found, it backtracks all steps until it finds a new unvisited cell
@@ -235,6 +239,8 @@ void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &cu
             // Deletes the wall in between the 2 cells
             if(row_to_del > -1 && col_to_del > -1) {
                 maze[row_to_del][col_to_del] = MAZE_PATH::EMPTY;
+                if(show_steps)
+                    display_ascii_maze(maze, size, show_steps);
             }
             else {
                 std::cout << "Unexpected error while generating the maze path." << std::endl;
@@ -258,7 +264,7 @@ void visit_forward(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &cu
     }
     // Follows the path's steps back until a new unvisited cell is found, and then it resumes the path generation
     // process from there
-    backtrack(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng);
+    backtrack(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, show_steps);
 }
 
 
@@ -359,8 +365,9 @@ std::vector<std::vector<int>> get_unvisited_near_cells(std::vector<std::vector<M
  *  of their traversal order.
  *  @param visited_cells This is the matrix used to keep track of all the cells that have been visited.
  *  @param rng This is the random number engine to use in order to generate random values.
+ *  @param show_steps Flag used to determine if each change step must be shown on screen.
  */
-void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng) {
+void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_index, std::vector<int> &curr_cell, std::vector<std::vector<int>> &curr_track, std::vector<std::vector<bool>> &visited_cells,  std::mt19937 &rng, bool show_steps) {
     // Follows the steps back until a new unvisited cell is found or
     // the maze has been completely visited
     // Starts from -2 since the latest element in the track corresponds to the latest visited cell (no near unvisited ones)
@@ -375,7 +382,7 @@ void backtrack(std::vector<std::vector<MAZE_PATH>> &maze, int &size, int &curr_i
         // n_cells is updated by the function call below
         get_unvisited_near_cells(maze, curr_cell, size, visited_cells, n_cells, false);
         if(n_cells > 0) {
-            visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, false);
+            visit_forward(maze, size, curr_index, curr_cell, curr_track, visited_cells, rng, false, show_steps);
             break;
         }
     }
