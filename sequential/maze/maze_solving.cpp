@@ -291,9 +291,11 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
     maze_copy.clear();
 
     while(n_exited_particles < particles.size()) {
-        if(show_steps)
+        if(show_steps) {
             // Resets the maze to show the steps
             maze_copy = maze;
+            maze_copy[initial_position.row][initial_position.col] = MAZE_PATH::START;
+        }
 
         // Backtracking the particles movements until they are on the solution path
         // After that they follow the first exited particle's movements
@@ -335,18 +337,24 @@ void backtrack_exited_particle(std::vector<std::vector<MAZE_PATH>> &maze, std::v
                     particle.update_coordinates(get_next_move_from_path(particle, next_coords), true);
                     particles[particle_index] = particle;
 
-                    // Displays the particle's steps
+                    // Displays the particle's position
                     if(show_steps && !maze_copy.empty()) {
                         maze_copy[particle.pos.row][particle.pos.col] = MAZE_PATH::PARTICLE;
-                        maze_copy[initial_position.row][initial_position.col] = MAZE_PATH::START;
-                        display_ascii_maze(maze_copy, size);
                     }
                 } else if (!exited_particles_map[particle_index]){
                     n_exited_particles += 1;
                     exited_particles_map[particle_index] = true;
                 }
+            } else {
+                // Displays the particle's position
+                if(show_steps && !maze_copy.empty()) {
+                    maze_copy[particles[particle_index].pos.row][particles[particle_index].pos.col] = MAZE_PATH::PARTICLE;
+                }
             }
         }
+
+        if(show_steps)
+            display_ascii_maze(maze_copy, size);
     }
 //    for(Particle particle : particles) {
 //        std::cout << particle.pos.row << " nn " << particle.pos.col << std::endl;
