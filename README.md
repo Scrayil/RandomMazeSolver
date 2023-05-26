@@ -25,7 +25,7 @@ Here is a sample report that shows the record related to the above maze's image:
 https://github.com/Scrayil/RandomMazeSolver/blob/29e9452dc768a101b30393f1d8dd62700704b79d/results/executions_report.csv?plain=1#L1-L3  
 
 ## Demo
-The following animtion has been consistently slowed down in order to show the generation and solution steps of a maze.  
+The following animation has been consistently slowed down in order to show the generation and solution steps of a maze.  
 
 ![Maze generation and solution steps animation](https://github.com/Scrayil/RandomMazeSolver/blob/11e5d3696a613f06434def7a01b5cf3651ec9e8d/report/media/video/slowed_down_steps.gif) 
 
