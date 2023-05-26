@@ -24,8 +24,14 @@ Here is a sample report that shows the record related to the above maze's image:
 
 https://github.com/Scrayil/RandomMazeSolver/blob/29e9452dc768a101b30393f1d8dd62700704b79d/results/executions_report.csv?plain=1#L1-L3  
 
+## Demo
+The following animtion has been consistently slowed down in order to show the generation and solution steps of a maze.  
+
+![Maze generation and solution steps animation](https://github.com/Scrayil/RandomMazeSolver/blob/11e5d3696a613f06434def7a01b5cf3651ec9e8d/report/media/video/slowed_down_steps.gif) 
+
 ## Notes
 **Showing intermediate steps** while generating and solving big mazes by using a big amount of particles results into slow console updates, flickering and an harsh visual experience.  
+This will heavily slow down the code execution.
 
 At the moment the **mazes' images filenames generation** does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
 If 2 small mazes are solved consecutively in the same second (timestamp), the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
