@@ -11,7 +11,7 @@
 // FUNCTIONS
 
 /**
- * This function is the sequential access point used to generate the maze and solve it randomly.
+ * This function is the parallel version access point used to generate the maze and solve it randomly.
  *
  * @param maze This is the matrix that represents the maze's structure.
  * @param size This value represents each maze's side size.
