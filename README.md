@@ -35,6 +35,9 @@ This will heavily slow down the code execution.
 At the moment the **mazes' images filenames generation** does guarantee uniqueness if the generation and the solution of 2 consecutive mazes don't happen during the same second.  
 If 2 small mazes are solved consecutively in the same second (timestamp), the uniqueness is guaranteed only if different seeds have been used between the two executions. (default)  
 
+This software includes thirty-party code for parsing json files.  
+- The json parser has been taken from [nlohmann](https://github.com/nlohmann/json.git)
+
 ## License
 Copyright 2023 Mattia Bennati  
 Licensed under the GNU GPL V2: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
